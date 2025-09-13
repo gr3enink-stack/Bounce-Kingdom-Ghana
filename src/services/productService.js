@@ -1,0 +1,225 @@
+import Product from '../models/Product.js';
+
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
+// Mock data for browser environment
+let mockProducts = [
+  {
+    _id: '1',
+    productId: 1,
+    name: "The Pirate Ship Bounce House",
+    description: "Ahoy mateys! Set sail for adventure with our pirate-themed bounce house complete with slides and climbing areas.",
+    image: "/images/pirate-ship.jpg",
+    category: "Bounce House",
+    status: "Available",
+    lastMaintenance: new Date().toISOString()
+  },
+  {
+    _id: '2',
+    productId: 2,
+    name: "Tropical Thunder Water Slide",
+    description: "Cool off with our tropical-themed water slide that will make a splash at any party!",
+    image: "/images/water-slide.jpg",
+    category: "Water Slide",
+    status: "In Use",
+    lastMaintenance: new Date().toISOString()
+  },
+  {
+    _id: '3',
+    productId: 3,
+    name: "Rainbow Balloon Pit",
+    description: "Dive into a sea of colorful balloons in our magical rainbow balloon pit.",
+    image: "/images/balloon-pit.jpg",
+    category: "Balloon Pit",
+    status: "Available",
+    lastMaintenance: new Date().toISOString()
+  },
+  {
+    _id: '4',
+    productId: 4,
+    name: "Castle Adventure Combo",
+    description: "Our most popular combo unit with a bounce area, slide, and climbing wall.",
+    image: "/images/castle-combo.jpg",
+    category: "Combo Unit",
+    status: "Maintenance",
+    lastMaintenance: new Date().toISOString()
+  }
+];
+
+// Create a new product
+export const createProduct = async (productData) => {
+  try {
+    console.log('Creating product with data:', productData);
+    
+    // In browser environment, return mock data
+    if (isBrowser) {
+      console.log('Running in browser environment, returning mock product');
+      const mockProduct = {
+        ...productData,
+        _id: Math.random().toString(36).substr(2, 9),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Add to mock products array
+      mockProducts.push(mockProduct);
+      return mockProduct;
+    }
+    
+    // In Node.js environment, use actual database
+    console.log('Product data type:', typeof productData);
+    console.log('Product data constructor:', productData.constructor.name);
+    
+    // Validate that we have the required fields
+    if (!productData.name || !productData.description || !productData.category) {
+      throw new Error('Missing required fields: name, description, and category are required');
+    }
+    
+    // Create a new Product instance from the provided data
+    const product = new Product(productData);
+    console.log('Product instance created:', product);
+    console.log('Product instance type:', typeof product);
+    console.log('Product constructor:', product.constructor.name);
+    console.log('Product has save method:', typeof product.save);
+    
+    // Check if product has save method before calling it
+    if (typeof product.save !== 'function') {
+      // Try alternative approach using Product.create
+      console.log('Using Product.create instead of new Product() + save()');
+      const savedProduct = await Product.create(productData);
+      console.log('Product created successfully:', savedProduct.name);
+      return savedProduct;
+    }
+    
+    const savedProduct = await product.save();
+    console.log('Product saved successfully:', savedProduct.name);
+    return savedProduct;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    // More detailed error handling
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      throw new Error(`Validation error: ${validationErrors.join(', ')}`);
+    } else if (error.name === 'MongoError' || error.name === 'BulkWriteError') {
+      throw new Error(`Database error: ${error.message}`);
+    } else {
+      throw new Error(`Error creating product: ${error.message}`);
+    }
+  }
+};
+
+// Get all products
+export const getAllProducts = async () => {
+  try {
+    // In browser environment, return mock data
+    if (isBrowser) {
+      console.log('Running in browser environment, returning mock products');
+      return mockProducts;
+    }
+    
+    // In Node.js environment, use actual database
+    const products = await Product.find({}).sort({ createdAt: -1 });
+    return products;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    throw new Error(`Error fetching products: ${error.message}`);
+  }
+};
+
+// Get product by ID
+export const getProductById = async (id) => {
+  try {
+    // In browser environment, return mock data
+    if (isBrowser) {
+      console.log('Running in browser environment, returning mock product by ID');
+      const product = mockProducts.find(p => p._id === id || p.productId === parseInt(id));
+      if (!product) {
+        throw new Error('Product not found');
+      }
+      return product;
+    }
+    
+    // In Node.js environment, use actual database
+    const product = await Product.findById(id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    return product;
+  } catch (error) {
+    console.error(`Error fetching product with id ${id}:`, error);
+    throw new Error(`Error fetching product: ${error.message}`);
+  }
+};
+
+// Update product
+export const updateProduct = async (id, updateData) => {
+  try {
+    // In browser environment, return mock data
+    if (isBrowser) {
+      console.log('Running in browser environment, updating mock product');
+      const productIndex = mockProducts.findIndex(p => p._id === id || p.productId === parseInt(id));
+      if (productIndex === -1) {
+        throw new Error('Product not found');
+      }
+      
+      mockProducts[productIndex] = {
+        ...mockProducts[productIndex],
+        ...updateData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      return mockProducts[productIndex];
+    }
+    
+    // In Node.js environment, use actual database
+    // Remove any fields that shouldn't be updated directly
+    const { _id, __v, createdAt, ...updateFields } = updateData;
+    
+    const product = await Product.findByIdAndUpdate(
+      id, 
+      { $set: updateFields }, 
+      { new: true, runValidators: true }
+    );
+    
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    return product;
+  } catch (error) {
+    console.error(`Error updating product with id ${id}:`, error);
+    throw new Error(`Error updating product: ${error.message}`);
+  }
+};
+
+// Delete product
+export const deleteProduct = async (id) => {
+  try {
+    // In browser environment, return mock data
+    if (isBrowser) {
+      console.log('Running in browser environment, deleting mock product');
+      const productIndex = mockProducts.findIndex(p => p._id === id || p.productId === parseInt(id));
+      if (productIndex === -1) {
+        throw new Error('Product not found');
+      }
+      
+      const deletedProduct = mockProducts[productIndex];
+      mockProducts.splice(productIndex, 1);
+      return deletedProduct;
+    }
+    
+    // In Node.js environment, use actual database
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    return product;
+  } catch (error) {
+    console.error(`Error deleting product with id ${id}:`, error);
+    throw new Error(`Error deleting product: ${error.message}`);
+  }
+};
