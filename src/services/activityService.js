@@ -19,15 +19,28 @@ import Activity from '../models/Activity.js';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
+const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : '/api');
 
 // Create a new activity
 export const createActivity = async (activityData) => {
   try {
-    // In browser environment, this would typically make an API call
+    // In browser environment, make API call
     if (isBrowser) {
-      // For now, we'll just log to console
-      console.log('Activity created:', activityData);
-      return activityData;
+      const response = await fetch(`${apiBaseUrl}/api/activities`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(activityData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const activity = await response.json();
+      return activity;
     }
     
     // Create a new Activity instance from the provided data
@@ -47,7 +60,7 @@ export const getActivities = async (limit = 10) => {
     if (isBrowser) {
       console.log('Running in browser environment, making API call to fetch activities');
       
-      const response = await fetch(`/api/activities?limit=${limit}`);
+      const response = await fetch(`${apiBaseUrl}/api/activities?limit=${limit}`);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to fetch activities`);

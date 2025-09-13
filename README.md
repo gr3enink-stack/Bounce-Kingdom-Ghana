@@ -57,19 +57,34 @@ For production, use `.env.production` with appropriate values.
 - SEO optimization with sitemap and meta tags
 
 ## Deployment
-1. Build the project: `npm run build`
-2. Set up MongoDB database
-3. Configure environment variables
-4. Deploy the `dist/` folder to your hosting provider
 
-For production deployment with Node.js server:
-1. Build the project: `npm run build`
-2. Install dependencies: `npm install`
-3. Configure `.env.production` with your MongoDB URI and other settings
-   - Replace `your_production_mongodb_uri_here` with your actual MongoDB connection string
-   - Replace `your_secure_jwt_secret_here` with a strong secret key
-4. Start the production server: `npm start`
-5. The server will run on port 5000 by default (or the PORT specified in .env.production)
+### Backend Deployment
+The backend can be deployed to services like Render.com or Heroku:
+
+1. **Render.com Deployment**:
+   - Create a new Web Service
+   - Connect your GitHub repository
+   - Set Build Command: `npm install`
+   - Set Start Command: `npm start`
+   - Add Environment Variables:
+     - `MONGO_URI`: Your MongoDB connection string
+     - `JWT_SECRET`: Your JWT secret key
+     - `PORT`: 5001 (or any port you prefer)
+
+2. **Heroku Deployment**:
+   - Create a new app
+   - Connect your GitHub repository
+   - Set environment variables using `heroku config:set`
+   - Deploy using `git push heroku main`
+
+### Frontend Deployment to Netlify
+1. Create an account at [Netlify](https://netlify.com/)
+2. Connect your GitHub repository
+3. Set Build Settings:
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+4. Set Environment Variables in Netlify:
+   - `VITE_API_URL`: The URL of your deployed backend (e.g., `https://your-app-name.onrender.com`)
 
 ### Production Verification
 The site has been verified and is ready for production deployment. See [DEPLOYMENT_VERIFICATION.md](DEPLOYMENT_VERIFICATION.md) for details.
@@ -216,82 +231,3 @@ The application uses Mongoose ODM with three main models:
 - **Product Model**: Stores product details, descriptions, images (as base64 strings), specifications, categories, and status
 - **User Model**: Stores user credentials with bcrypt password hashing and role-based access control
 - **Booking Model**: Stores customer booking information including product details, customer information, and booking status
-
-### Services Layer
-Each model has a corresponding service file that encapsulates database operations:
-- `productService.js`: Handles all product-related database operations (create, read, update, delete)
-- `userService.js`: Manages user authentication and user data operations
-- `bookingService.js`: Handles booking creation, retrieval, and management
-
-### Real-time Data Synchronization
-- Admin dashboard operations immediately update MongoDB
-- Frontend components fetch fresh data from MongoDB on load
-- Product images uploaded in admin are stored in MongoDB and displayed on frontend
-
-### Data Flow
-1. Admin uploads product image → Image converted to base64 → Saved to MongoDB
-2. User visits product page → Product data fetched from MongoDB → Images displayed
-3. Admin updates product info → Changes saved to MongoDB → Frontend reflects updates
-
-## Troubleshooting
-
-### MongoDB Connection Issues
-
-1. Ensure MongoDB service is running:
-   - Windows: `net start MongoDB`
-   - macOS: `brew services start mongodb-community@7.0`
-   - Linux: `sudo systemctl start mongod`
-
-2. Check the MongoDB connection string in `.env` file
-
-3. Verify MongoDB is accessible:
-   ```
-   mongo mongodb://localhost:27017
-   ```
-
-### Common Issues
-
-1. **Port already in use**: Change the PORT value in `.env` file
-2. **Permission errors**: Ensure you have proper permissions to run MongoDB
-3. **Connection timeouts**: Check firewall settings and network connectivity
-4. **Database initialization failed**: Check MongoDB logs for errors
-
-## Development
-
-### Project Structure
-
-```
-src/
-├── components/         # React components
-├── config/             # Configuration files
-├── models/             # Mongoose models
-├── services/           # Service layer for database operations
-└── App.jsx             # Main application component
-```
-
-### Adding New Features
-
-1. Create new Mongoose models in `src/models/`
-2. Add service functions in `src/services/`
-3. Implement components in `src/components/`
-4. Update routes in `src/App.jsx` if needed
-
-## Security Considerations
-
-1. Passwords are hashed using bcrypt before storage
-2. Admin routes are protected with authentication middleware
-3. Environment variables are used for sensitive configuration
-4. Input validation should be implemented for all user inputs
-5. In production, enable MongoDB authentication and use SSL connections
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a pull request
-
-## License
-
-This project is licensed under the MIT License.

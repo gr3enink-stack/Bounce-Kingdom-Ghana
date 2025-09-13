@@ -6,6 +6,9 @@ const isBrowser = typeof window !== 'undefined';
 // Mock data for browser environment
 let mockBookings = [];
 
+// API functions for browser environment
+const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : '/api');
+
 // Create a new booking
 export const createBooking = async (bookingData) => {
   try {
@@ -36,7 +39,7 @@ export const createBooking = async (bookingData) => {
     if (isBrowser) {
       console.log('Running in browser environment, making API call to save booking');
       
-      const response = await fetch('/api/bookings', {
+      const response = await fetch(`${apiBaseUrl}/api/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +118,7 @@ export const getAllBookings = async () => {
     if (isBrowser) {
       console.log('Running in browser environment, making API call to fetch bookings');
       
-      const response = await fetch('/api/bookings');
+      const response = await fetch(`${apiBaseUrl}/api/bookings`);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to fetch bookings`);
@@ -137,13 +140,17 @@ export const getAllBookings = async () => {
 // Get booking by ID
 export const getBookingById = async (id) => {
   try {
-    // In browser environment, return mock data
+    // In browser environment, make API call
     if (isBrowser) {
-      console.log('Running in browser environment, returning mock booking by ID');
-      const booking = mockBookings.find(b => b._id === id);
-      if (!booking) {
-        throw new Error('Booking not found');
+      console.log('Running in browser environment, making API call to get booking by ID');
+      
+      const response = await fetch(`${apiBaseUrl}/api/bookings/${id}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch booking`);
       }
+      
+      const booking = await response.json();
       return booking;
     }
     
@@ -161,21 +168,35 @@ export const getBookingById = async (id) => {
 // Update booking
 export const updateBooking = async (id, updateData) => {
   try {
-    // In browser environment, return mock data
+    // In browser environment, make API call
     if (isBrowser) {
-      console.log('Running in browser environment, updating mock booking');
-      const bookingIndex = mockBookings.findIndex(b => b._id === id);
-      if (bookingIndex === -1) {
-        throw new Error('Booking not found');
+      console.log('Running in browser environment, making API call to update booking');
+      
+      const response = await fetch(`${apiBaseUrl}/api/bookings/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (parseError) {
+          // If parsing fails, use the raw text
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to update booking`);
       }
       
-      mockBookings[bookingIndex] = {
-        ...mockBookings[bookingIndex],
-        ...updateData,
-        updatedAt: new Date().toISOString()
-      };
-      
-      return mockBookings[bookingIndex];
+      const booking = await response.json();
+      return booking;
     }
     
     // Remove any fields that shouldn't be updated directly
@@ -200,17 +221,21 @@ export const updateBooking = async (id, updateData) => {
 // Delete booking
 export const deleteBooking = async (id) => {
   try {
-    // In browser environment, return mock data
+    // In browser environment, make API call
     if (isBrowser) {
-      console.log('Running in browser environment, deleting mock booking');
-      const bookingIndex = mockBookings.findIndex(b => b._id === id);
-      if (bookingIndex === -1) {
-        throw new Error('Booking not found');
+      console.log('Running in browser environment, making API call to delete booking');
+      
+      const response = await fetch(`${apiBaseUrl}/api/bookings/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete booking');
       }
       
-      const deletedBooking = mockBookings[bookingIndex];
-      mockBookings.splice(bookingIndex, 1);
-      return deletedBooking;
+      const booking = await response.json();
+      return booking;
     }
     
     const booking = await Booking.findByIdAndDelete(id);

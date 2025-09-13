@@ -1,27 +1,22 @@
 import Report from '../models/Report.js';
-import Booking from '../models/Booking.js';
-import Product from '../models/Product.js';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
+const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : '/api');
 
 // Generate and save revenue report
 export const generateRevenueReport = async (period = 'monthly') => {
   try {
-    // In browser environment, this would typically make an API call
+    // In browser environment, make API call
     if (isBrowser) {
-      // For now, we'll return mock data
-      // In a real implementation, this would call an API endpoint
-      return {
-        type: 'revenue',
-        period,
-        date: new Date(),
-        value: 4250,
-        metadata: {
-          currency: 'GHS',
-          previousPeriod: 3750
-        }
-      };
+      const response = await fetch(`${apiBaseUrl}/api/reports/revenue?period=${period}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to generate revenue report`);
+      }
+      
+      const report = await response.json();
+      return report;
     }
     
     // Calculate revenue from bookings
@@ -60,19 +55,16 @@ export const generateRevenueReport = async (period = 'monthly') => {
 // Generate and save bookings report
 export const generateBookingsReport = async (period = 'monthly') => {
   try {
-    // In browser environment, this would typically make an API call
+    // In browser environment, make API call
     if (isBrowser) {
-      // For now, we'll return mock data
-      // In a real implementation, this would call an API endpoint
-      return {
-        type: 'bookings',
-        period,
-        date: new Date(),
-        value: 25,
-        metadata: {
-          previousPeriod: 23
-        }
-      };
+      const response = await fetch(`${apiBaseUrl}/api/reports/bookings?period=${period}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to generate bookings report`);
+      }
+      
+      const report = await response.json();
+      return report;
     }
     
     // Count bookings
@@ -106,19 +98,16 @@ export const generateBookingsReport = async (period = 'monthly') => {
 // Generate and save equipment utilization report
 export const generateEquipmentUtilizationReport = async (period = 'monthly') => {
   try {
-    // In browser environment, this would typically make an API call
+    // In browser environment, make API call
     if (isBrowser) {
-      // For now, we'll return mock data
-      // In a real implementation, this would call an API endpoint
-      return {
-        type: 'equipment-utilization',
-        period,
-        date: new Date(),
-        value: 85,
-        metadata: {
-          previousPeriod: 88
-        }
-      };
+      const response = await fetch(`${apiBaseUrl}/api/reports/equipment-utilization?period=${period}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to generate equipment utilization report`);
+      }
+      
+      const report = await response.json();
+      return report;
     }
     
     // Calculate equipment utilization
@@ -162,48 +151,34 @@ export const generateEquipmentUtilizationReport = async (period = 'monthly') => 
 // Get all reports
 export const getAllReports = async (type = null, period = null) => {
   try {
-    // In browser environment, this would typically make an API call
+    // In browser environment, make API call
     if (isBrowser) {
-      // For now, we'll return mock data
-      // In a real implementation, this would call an API endpoint
-      return [
-        {
-          type: 'revenue',
-          period: 'monthly',
-          date: new Date(),
-          value: 4250,
-          metadata: {
-            currency: 'GHS',
-            previousPeriod: 3750
-          }
-        },
-        {
-          type: 'bookings',
-          period: 'monthly',
-          date: new Date(),
-          value: 25,
-          metadata: {
-            previousPeriod: 23
-          }
-        },
-        {
-          type: 'equipment-utilization',
-          period: 'monthly',
-          date: new Date(),
-          value: 85,
-          metadata: {
-            previousPeriod: 88
-          }
-        }
-      ];
+      let url = `${apiBaseUrl}/api/reports`;
+      const params = new URLSearchParams();
+      
+      if (type) params.append('type', type);
+      if (period) params.append('period', period);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch reports`);
+      }
+      
+      const reports = await response.json();
+      return reports;
     }
     
-    // Query reports from database
+    // In Node.js environment, use actual database
     let query = {};
     if (type) query.type = type;
     if (period) query.period = period;
     
-    const reports = await Report.find(query).sort({ date: -1 }).limit(50);
+    const reports = await Report.find(query).sort({ date: -1 });
     return reports;
   } catch (error) {
     console.error('Error fetching reports:', error);

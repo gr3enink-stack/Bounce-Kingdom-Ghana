@@ -3,8 +3,8 @@ import Product from '../models/Product.js';
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
 
-// Mock data for browser environment (fallback)
-let mockProducts = [
+// Mock data for fallback
+const mockProducts = [
   {
     _id: '1',
     productId: 1,
@@ -48,7 +48,7 @@ let mockProducts = [
 ];
 
 // API functions for browser environment
-const apiBaseUrl = '/api';
+const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : '/api');
 
 // Create a new product
 export const createProduct = async (productData) => {
@@ -59,7 +59,7 @@ export const createProduct = async (productData) => {
     if (isBrowser) {
       console.log('Running in browser environment, making API call');
       
-      const response = await fetch(`${apiBaseUrl}/products`, {
+      const response = await fetch(`${apiBaseUrl}/api/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export const getAllProducts = async () => {
     if (isBrowser) {
       console.log('Running in browser environment, making API call to get all products');
       
-      const response = await fetch(`${apiBaseUrl}/products`);
+      const response = await fetch(`${apiBaseUrl}/api/products`);
       
       if (!response.ok) {
         // Fallback to mock data if API call fails
@@ -172,7 +172,7 @@ export const getProductById = async (id) => {
     if (isBrowser) {
       console.log('Running in browser environment, making API call to get product by ID');
       
-      const response = await fetch(`${apiBaseUrl}/products/${id}`);
+      const response = await fetch(`${apiBaseUrl}/api/products/${id}`);
       
       if (!response.ok) {
         // Fallback to mock data if API call fails
@@ -210,11 +210,6 @@ export const getProductById = async (id) => {
 // Update product
 export const updateProduct = async (id, updateData) => {
   try {
-    // Validate that we have a valid ID
-    if (!id || id === 'undefined') {
-      throw new Error('Invalid product ID provided for update');
-    }
-    
     // In browser environment, make API call
     if (isBrowser) {
       console.log('Running in browser environment, making API call to update product');
@@ -226,7 +221,7 @@ export const updateProduct = async (id, updateData) => {
         throw new Error('Image is too large. Please use an image smaller than 8MB.');
       }
       
-      const response = await fetch(`${apiBaseUrl}/products/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/api/products/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -257,15 +252,7 @@ export const updateProduct = async (id, updateData) => {
     }
     
     // In Node.js environment, use actual database
-    // Remove any fields that shouldn't be updated directly
-    const { _id, __v, createdAt, ...updateFields } = updateData;
-    
-    const product = await Product.findByIdAndUpdate(
-      id, 
-      { $set: updateFields }, 
-      { new: true, runValidators: true }
-    );
-    
+    const product = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     if (!product) {
       throw new Error('Product not found');
     }
@@ -273,8 +260,6 @@ export const updateProduct = async (id, updateData) => {
   } catch (error) {
     console.error(`Error updating product with id ${id}:`, error);
     console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
     
     // More detailed error handling
     if (error.name === 'ValidationError') {
@@ -299,7 +284,7 @@ export const deleteProduct = async (id) => {
     if (isBrowser) {
       console.log('Running in browser environment, making API call to delete product');
       
-      const response = await fetch(`${apiBaseUrl}/products/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/api/products/${id}`, {
         method: 'DELETE'
       });
       
