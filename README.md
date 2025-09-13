@@ -36,7 +36,7 @@ npm run preview
 Create a `.env` file in the root directory with the following variables:
 ```
 MONGO_URI=mongodb://localhost:27017/bouncekingdom
-PORT=5000
+PORT=5001
 JWT_SECRET=your_jwt_secret_key_here
 NODE_ENV=development
 VITE_API_URL=http://localhost:5001
@@ -94,6 +94,24 @@ The backend can be deployed to services like Render.com or Heroku:
    - Publish directory: `dist`
 4. Set Environment Variables in Netlify:
    - `VITE_API_URL`: The URL of your deployed backend (e.g., `https://your-app-name.onrender.com`)
+
+### Frontend to Backend Connection
+
+To ensure your frontend properly connects to your backend:
+
+1. **Local Development**:
+   - The frontend uses a proxy to forward API requests to your backend
+   - API requests to `/api/*` are automatically forwarded to `http://localhost:5001`
+   - This is configured in `vite.config.js`
+
+2. **Production Deployment**:
+   - Set the `VITE_API_URL` environment variable in Netlify to point to your live backend
+   - This variable is used by all frontend services to make API calls
+   - Example: `VITE_API_URL=https://bounce-kingdom-backend-app.onrender.com`
+
+3. **Testing the Connection**:
+   - You can test the connection by visiting `/connection-test.html` on your deployed site
+   - This page will show the status of connections to all API endpoints
 
 ### Production Verification
 The site has been verified and is ready for production deployment. See [DEPLOYMENT_VERIFICATION.md](DEPLOYMENT_VERIFICATION.md) for details.
