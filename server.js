@@ -49,7 +49,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5001; // Changed from 5000 to 5001
+const PORT = process.env.PORT || 5002; // Changed from 5001 to 5002
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

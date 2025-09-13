@@ -1,4 +1,5 @@
 import Product from '../models/Product.js';
+import mongoose from 'mongoose';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
@@ -189,10 +190,20 @@ export const getProductById = async (id) => {
     }
     
     // In Node.js environment, use actual database
-    const product = await Product.findById(id);
+    // Try to find product by MongoDB ObjectId first, then by productId
+    let product;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // If it's a valid ObjectId, search by _id
+      product = await Product.findById(id);
+    } else {
+      // Otherwise, search by productId (numeric ID)
+      product = await Product.findOne({ productId: parseInt(id) });
+    }
+    
     if (!product) {
       throw new Error('Product not found');
     }
+    
     return product;
   } catch (error) {
     console.error(`Error fetching product with id ${id}:`, error);
@@ -252,11 +263,27 @@ export const updateProduct = async (id, updateData) => {
     }
     
     // In Node.js environment, use actual database
-    const product = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    // Try to find product by MongoDB ObjectId first, then by productId
+    let product;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // If it's a valid ObjectId, search by _id
+      product = await Product.findById(id);
+    } else {
+      // Otherwise, search by productId (numeric ID)
+      product = await Product.findOne({ productId: parseInt(id) });
+    }
+    
     if (!product) {
       throw new Error('Product not found');
     }
-    return product;
+    
+    // Update product fields
+    Object.keys(updateData).forEach(key => {
+      product[key] = updateData[key];
+    });
+    
+    const updatedProduct = await product.save();
+    return updatedProduct;
   } catch (error) {
     console.error(`Error updating product with id ${id}:`, error);
     console.error('Error name:', error.name);
@@ -298,10 +325,21 @@ export const deleteProduct = async (id) => {
     }
     
     // In Node.js environment, use actual database
-    const product = await Product.findByIdAndDelete(id);
+    // Try to find product by MongoDB ObjectId first, then by productId
+    let product;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // If it's a valid ObjectId, search by _id
+      product = await Product.findById(id);
+    } else {
+      // Otherwise, search by productId (numeric ID)
+      product = await Product.findOne({ productId: parseInt(id) });
+    }
+    
     if (!product) {
       throw new Error('Product not found');
     }
+    
+    await product.remove();
     return product;
   } catch (error) {
     console.error(`Error deleting product with id ${id}:`, error);

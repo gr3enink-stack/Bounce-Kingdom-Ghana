@@ -1,4 +1,5 @@
 import Product from '../models/Product.js';
+import mongoose from 'mongoose';
 
 // @desc    Get all products
 // @route   GET /api/products
@@ -18,7 +19,15 @@ export const getProducts = async (req, res) => {
 // @access  Public
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    // Try to find product by MongoDB ObjectId first, then by productId
+    let product;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      // If it's a valid ObjectId, search by _id
+      product = await Product.findById(req.params.id);
+    } else {
+      // Otherwise, search by productId (numeric ID)
+      product = await Product.findOne({ productId: parseInt(req.params.id) });
+    }
     
     if (product) {
       res.json(product);
@@ -105,7 +114,15 @@ export const updateProduct = async (req, res) => {
       lastMaintenance
     } = req.body;
 
-    const product = await Product.findById(req.params.id);
+    // Try to find product by MongoDB ObjectId first, then by productId
+    let product;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      // If it's a valid ObjectId, search by _id
+      product = await Product.findById(req.params.id);
+    } else {
+      // Otherwise, search by productId (numeric ID)
+      product = await Product.findOne({ productId: parseInt(req.params.id) });
+    }
     
     console.log('Found product:', product ? 'Yes' : 'No');
 
@@ -160,7 +177,15 @@ export const updateProduct = async (req, res) => {
 // @access  Private/Admin
 export const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    // Try to find product by MongoDB ObjectId first, then by productId
+    let product;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      // If it's a valid ObjectId, search by _id
+      product = await Product.findById(req.params.id);
+    } else {
+      // Otherwise, search by productId (numeric ID)
+      product = await Product.findOne({ productId: parseInt(req.params.id) });
+    }
 
     if (product) {
       await product.remove();
