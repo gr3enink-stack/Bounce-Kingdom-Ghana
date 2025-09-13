@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getAllBookings, createBooking, updateBooking, deleteBooking } from '../services/bookingService.js';
 import { getAllProducts, createProduct, updateProduct, deleteProduct } from '../services/productService.js';
+import { logout } from '../services/authService.js'; // Added import for logout function
+import { useNavigate } from 'react-router-dom'; // Added import for navigation
 import DeleteConfirmation from './DeleteConfirmation.jsx';
 import './AdminDashboard.css';
 
@@ -846,6 +848,7 @@ const NewProductModal = ({ onClose, onSave }) => {
 };
 
 const AdminDashboard = () => {
+  const navigate = useNavigate(); // Added navigation hook
   const [activeTab, setActiveTab] = useState('overview');
   const [viewBooking, setViewBooking] = useState(null);
   const [editBooking, setEditBooking] = useState(null);
@@ -1081,6 +1084,12 @@ const AdminDashboard = () => {
     }
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    logout(); // Clear authentication data
+    navigate('/admin/login'); // Redirect to login page
+  };
+
   if (loading) {
     return (
       <div className="admin-dashboard">
@@ -1109,7 +1118,10 @@ const AdminDashboard = () => {
     <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1>Admin Dashboard</h1>
-        <p>Welcome back, Admin!</p>
+        <div className="header-actions">
+          <p>Welcome back, Admin!</p>
+          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+        </div>
       </div>
       
       <div className="dashboard-tabs">
