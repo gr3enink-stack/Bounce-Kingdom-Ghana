@@ -10,16 +10,19 @@ import './index.css'
 // Connect to MongoDB asynchronously without blocking app render
 const initializeApp = async () => {
   try {
-    const dbModule = await import('./config/db.js');
-    const { initializeDatabase } = await import('./config/initializeDB.js');
-    
-    // Connect to database
-    await dbModule.default();
-    console.log('✅ MongoDB connected successfully');
-    
-    // Initialize database with default data
-    await initializeDatabase();
-    console.log('✅ Database initialized successfully');
+    // Only initialize database in Node.js environment, not in browser
+    if (typeof window === 'undefined') {
+      const dbModule = await import('./config/db.js');
+      const { initializeDatabase } = await import('./config/initializeDB.js');
+      
+      // Connect to database
+      await dbModule.default();
+      console.log('✅ MongoDB connected successfully');
+      
+      // Initialize database with default data
+      await initializeDatabase();
+      console.log('✅ Database initialized successfully');
+    }
   } catch (error) {
     console.error('❌ Database initialization error:', error.message);
     // Don't block the app if database fails

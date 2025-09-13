@@ -3,7 +3,7 @@ import Product from '../models/Product.js';
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
 
-// Mock data for browser environment
+// Mock data for browser environment (fallback)
 let mockProducts = [
   {
     _id: '1',
@@ -47,24 +47,33 @@ let mockProducts = [
   }
 ];
 
+// API functions for browser environment
+const apiBaseUrl = '/api';
+
 // Create a new product
 export const createProduct = async (productData) => {
   try {
     console.log('Creating product with data:', productData);
     
-    // In browser environment, return mock data
+    // In browser environment, make API call
     if (isBrowser) {
-      console.log('Running in browser environment, returning mock product');
-      const mockProduct = {
-        ...productData,
-        _id: Math.random().toString(36).substr(2, 9),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      console.log('Running in browser environment, making API call');
       
-      // Add to mock products array
-      mockProducts.push(mockProduct);
-      return mockProduct;
+      const response = await fetch(`${apiBaseUrl}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create product');
+      }
+      
+      const savedProduct = await response.json();
+      return savedProduct;
     }
     
     // In Node.js environment, use actual database
@@ -116,10 +125,20 @@ export const createProduct = async (productData) => {
 // Get all products
 export const getAllProducts = async () => {
   try {
-    // In browser environment, return mock data
+    // In browser environment, make API call
     if (isBrowser) {
-      console.log('Running in browser environment, returning mock products');
-      return mockProducts;
+      console.log('Running in browser environment, making API call to get all products');
+      
+      const response = await fetch(`${apiBaseUrl}/products`);
+      
+      if (!response.ok) {
+        // Fallback to mock data if API call fails
+        console.log('API call failed, returning mock products');
+        return mockProducts;
+      }
+      
+      const products = await response.json();
+      return products;
     }
     
     // In Node.js environment, use actual database
@@ -127,20 +146,33 @@ export const getAllProducts = async () => {
     return products;
   } catch (error) {
     console.error('Error fetching products:', error);
-    throw new Error(`Error fetching products: ${error.message}`);
+    // Fallback to mock data if database call fails
+    console.log('Database call failed, returning mock products');
+    return mockProducts;
+    // throw new Error(`Error fetching products: ${error.message}`);
   }
 };
 
 // Get product by ID
 export const getProductById = async (id) => {
   try {
-    // In browser environment, return mock data
+    // In browser environment, make API call
     if (isBrowser) {
-      console.log('Running in browser environment, returning mock product by ID');
-      const product = mockProducts.find(p => p._id === id || p.productId === parseInt(id));
-      if (!product) {
-        throw new Error('Product not found');
+      console.log('Running in browser environment, making API call to get product by ID');
+      
+      const response = await fetch(`${apiBaseUrl}/products/${id}`);
+      
+      if (!response.ok) {
+        // Fallback to mock data if API call fails
+        console.log('API call failed, returning mock product by ID');
+        const product = mockProducts.find(p => p._id === id || p.productId === parseInt(id));
+        if (!product) {
+          throw new Error('Product not found');
+        }
+        return product;
       }
+      
+      const product = await response.json();
       return product;
     }
     
@@ -152,28 +184,39 @@ export const getProductById = async (id) => {
     return product;
   } catch (error) {
     console.error(`Error fetching product with id ${id}:`, error);
-    throw new Error(`Error fetching product: ${error.message}`);
+    // Fallback to mock data if database call fails
+    console.log('Database call failed, returning mock product by ID');
+    const product = mockProducts.find(p => p._id === id || p.productId === parseInt(id));
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    return product;
+    // throw new Error(`Error fetching product: ${error.message}`);
   }
 };
 
 // Update product
 export const updateProduct = async (id, updateData) => {
   try {
-    // In browser environment, return mock data
+    // In browser environment, make API call
     if (isBrowser) {
-      console.log('Running in browser environment, updating mock product');
-      const productIndex = mockProducts.findIndex(p => p._id === id || p.productId === parseInt(id));
-      if (productIndex === -1) {
-        throw new Error('Product not found');
+      console.log('Running in browser environment, making API call to update product');
+      
+      const response = await fetch(`${apiBaseUrl}/products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update product');
       }
       
-      mockProducts[productIndex] = {
-        ...mockProducts[productIndex],
-        ...updateData,
-        updatedAt: new Date().toISOString()
-      };
-      
-      return mockProducts[productIndex];
+      const product = await response.json();
+      return product;
     }
     
     // In Node.js environment, use actual database
@@ -199,17 +242,21 @@ export const updateProduct = async (id, updateData) => {
 // Delete product
 export const deleteProduct = async (id) => {
   try {
-    // In browser environment, return mock data
+    // In browser environment, make API call
     if (isBrowser) {
-      console.log('Running in browser environment, deleting mock product');
-      const productIndex = mockProducts.findIndex(p => p._id === id || p.productId === parseInt(id));
-      if (productIndex === -1) {
-        throw new Error('Product not found');
+      console.log('Running in browser environment, making API call to delete product');
+      
+      const response = await fetch(`${apiBaseUrl}/products/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete product');
       }
       
-      const deletedProduct = mockProducts[productIndex];
-      mockProducts.splice(productIndex, 1);
-      return deletedProduct;
+      const product = await response.json();
+      return product;
     }
     
     // In Node.js environment, use actual database
