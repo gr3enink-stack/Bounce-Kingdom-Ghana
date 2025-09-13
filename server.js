@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 // Import routes
 import productRoutes from './src/routes/productRoutes.js';
 import bookingRoutes from './src/routes/bookingRoutes.js';
+import reportRoutes from './src/routes/reportRoutes.js';
+import activityRoutes from './src/routes/activityRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -33,6 +35,8 @@ mongoose.connect(process.env.MONGO_URI)
 // API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/activities', activityRoutes);
 
 // Serve frontend for any other requests (for SPA)
 app.get('*', (req, res) => {
@@ -45,7 +49,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001; // Changed from 5000 to 5001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

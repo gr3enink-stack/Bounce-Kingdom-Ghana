@@ -15,7 +15,8 @@ const productSchema = new mongoose.Schema({
     required: true
   },
   image: {
-    type: String
+    type: String,
+    maxlength: 10000000 // Increase limit for base64 images (10MB)
   },
   specs: {
     dimensions: String,

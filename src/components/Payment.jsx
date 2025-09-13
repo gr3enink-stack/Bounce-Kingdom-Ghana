@@ -1,10 +1,11 @@
 import React from 'react';
+import { formatCurrency } from '../utils/currency.js';
 import './Payment.css';
 
 const Payment = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
   const handlePayment = (method) => {
     // In a real application, you would integrate with a payment gateway
-    alert(`Processing payment of $${amount} via ${method}...`);
+    alert(`Processing payment of ${formatCurrency(amount)} via ${method}...`);
     // Simulate payment success
     setTimeout(() => {
       onPaymentSuccess();
@@ -15,7 +16,7 @@ const Payment = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
     <div className="payment-modal">
       <div className="payment-content">
         <h2>Secure Payment</h2>
-        <p>Amount: <strong>${amount}</strong></p>
+        <p>Amount: <strong>{formatCurrency(amount)}</strong></p>
         
         <div className="payment-methods">
           <button className="payment-method" onClick={() => handlePayment('Credit Card')}>

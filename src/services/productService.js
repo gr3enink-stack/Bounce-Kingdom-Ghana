@@ -68,8 +68,18 @@ export const createProduct = async (productData) => {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create product');
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (parseError) {
+          // If parsing fails, use the raw text
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to create product`);
       }
       
       const savedProduct = await response.json();
@@ -116,6 +126,8 @@ export const createProduct = async (productData) => {
       throw new Error(`Validation error: ${validationErrors.join(', ')}`);
     } else if (error.name === 'MongoError' || error.name === 'BulkWriteError') {
       throw new Error(`Database error: ${error.message}`);
+    } else if (error.name === 'BSONError') {
+      throw new Error('Image data is too large. Please use a smaller image.');
     } else {
       throw new Error(`Error creating product: ${error.message}`);
     }
@@ -198,9 +210,21 @@ export const getProductById = async (id) => {
 // Update product
 export const updateProduct = async (id, updateData) => {
   try {
+    // Validate that we have a valid ID
+    if (!id || id === 'undefined') {
+      throw new Error('Invalid product ID provided for update');
+    }
+    
     // In browser environment, make API call
     if (isBrowser) {
       console.log('Running in browser environment, making API call to update product');
+      console.log('Update data size:', JSON.stringify(updateData).length, 'characters');
+      console.log('Product ID:', id);
+      
+      // Check if image data is too large
+      if (updateData.image && updateData.image.length > 8000000) { // 8MB limit
+        throw new Error('Image is too large. Please use an image smaller than 8MB.');
+      }
       
       const response = await fetch(`${apiBaseUrl}/products/${id}`, {
         method: 'PUT',
@@ -210,12 +234,25 @@ export const updateProduct = async (id, updateData) => {
         body: JSON.stringify(updateData)
       });
       
+      console.log('API response status:', response.status);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update product');
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (parseError) {
+          // If parsing fails, use the raw text
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to update product`);
       }
       
       const product = await response.json();
+      console.log('Product updated successfully:', product);
       return product;
     }
     
@@ -235,7 +272,23 @@ export const updateProduct = async (id, updateData) => {
     return product;
   } catch (error) {
     console.error(`Error updating product with id ${id}:`, error);
-    throw new Error(`Error updating product: ${error.message}`);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    // More detailed error handling
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      throw new Error(`Validation error: ${validationErrors.join(', ')}`);
+    } else if (error.name === 'MongoError' || error.name === 'BulkWriteError') {
+      throw new Error(`Database error: ${error.message}`);
+    } else if (error.name === 'BSONError') {
+      throw new Error('Image data is too large. Please use a smaller image.');
+    } else if (error.name === 'CastError') {
+      throw new Error(`Invalid product ID format: ${error.message}`);
+    } else {
+      throw new Error(`Error updating product: ${error.message}`);
+    }
   }
 };
 

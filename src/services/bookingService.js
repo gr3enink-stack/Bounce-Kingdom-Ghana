@@ -11,21 +11,6 @@ export const createBooking = async (bookingData) => {
   try {
     console.log('Creating booking with data:', bookingData);
     
-    // In browser environment, return mock data
-    if (isBrowser) {
-      console.log('Running in browser environment, returning mock booking');
-      const mockBooking = {
-        ...bookingData,
-        _id: Math.random().toString(36).substr(2, 9),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      // Add to mock bookings array
-      mockBookings.push(mockBooking);
-      return mockBooking;
-    }
-    
     // Validate required fields
     if (!bookingData.bookingId) {
       throw new Error('Booking ID is required');
@@ -45,6 +30,45 @@ export const createBooking = async (bookingData) => {
     
     if (!bookingData.totalAmount) {
       throw new Error('Total amount is required');
+    }
+    
+    // In browser environment, make API call to save to database
+    if (isBrowser) {
+      console.log('Running in browser environment, making API call to save booking');
+      
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (parseError) {
+          // If parsing fails, use the raw text
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to create booking`);
+      }
+      
+      const savedBooking = await response.json();
+      console.log('Booking created successfully via API:', savedBooking);
+      
+      // Add to mock bookings array for consistency
+      if (typeof window !== 'undefined') {
+        if (!window.mockBookings) window.mockBookings = [];
+        window.mockBookings.push(savedBooking);
+      }
+      
+      return savedBooking;
     }
     
     // Create a new Booking instance from the provided data
@@ -87,10 +111,19 @@ export const createBooking = async (bookingData) => {
 // Get all bookings
 export const getAllBookings = async () => {
   try {
-    // In browser environment, return mock data
+    // In browser environment, make API call to fetch from database
     if (isBrowser) {
-      console.log('Running in browser environment, returning mock bookings');
-      return mockBookings;
+      console.log('Running in browser environment, making API call to fetch bookings');
+      
+      const response = await fetch('/api/bookings');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch bookings`);
+      }
+      
+      const bookings = await response.json();
+      console.log('Bookings fetched successfully via API:', bookings.length);
+      return bookings;
     }
     
     const bookings = await Booking.find({}).sort({ createdAt: -1 });

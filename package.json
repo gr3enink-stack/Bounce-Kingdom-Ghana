@@ -20,7 +20,8 @@
     "test:booking-create": "node test-booking-creation.js",
     "debug:booking": "node debug-booking.js",
     "test:product-data": "node test-product-data.js",
-    "test:db-connection": "node test-db-connection.js"
+    "test:db-connection": "node test-db-connection.js",
+    "create-admin": "node createAdminUser.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

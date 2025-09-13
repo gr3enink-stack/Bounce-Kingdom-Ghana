@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getAllBookings, createBooking, updateBooking, deleteBooking } from '../services/bookingService.js';
 import { getAllProducts, createProduct, updateProduct, deleteProduct } from '../services/productService.js';
+import { getActivities, createActivity } from '../services/activityService.js'; // Added import for getActivities and createActivity
 import { logout } from '../services/authService.js'; // Added import for logout function
 import { useNavigate } from 'react-router-dom'; // Added import for navigation
+import { formatCurrency } from '../utils/currency.js'; // Added import for currency formatting
 import DeleteConfirmation from './DeleteConfirmation.jsx';
 import './AdminDashboard.css';
 
@@ -44,7 +46,7 @@ const ViewBookingModal = ({ booking, onClose }) => {
           </div>
           <div className="booking-detail">
             <label>Total Amount:</label>
-            <span>${booking.totalAmount}.00</span>
+            <span>{formatCurrency(booking.totalAmount)}</span>
           </div>
         </div>
         <div className="modal-footer">
@@ -172,11 +174,11 @@ const NewBookingModal = ({ products, onClose, onSave }) => {
     duration: {
       id: '4-hours',
       name: '4 Hours',
-      price: 150
+      price: 600
     },
     address: '',
     status: 'Pending',
-    totalAmount: 150
+    totalAmount: 600
   });
 
   const handleChange = (e) => {
@@ -202,7 +204,8 @@ const NewBookingModal = ({ products, onClose, onSave }) => {
     
     const bookingToSave = {
       ...newBooking,
-      bookingId: bookingId
+      bookingId: bookingId,
+      totalAmount: newBooking.duration.price // Use the price from duration
     };
     
     onSave(bookingToSave);
@@ -287,6 +290,29 @@ const NewBookingModal = ({ products, onClose, onSave }) => {
               value={newBooking.time} 
               onChange={handleChange} 
             />
+          </div>
+          <div className="form-group">
+            <label>Duration:</label>
+            <select 
+              name="duration.id" 
+              value={newBooking.duration.id} 
+              onChange={(e) => {
+                const selectedDuration = durations.find(d => d.id === e.target.value);
+                if (selectedDuration) {
+                  setNewBooking(prev => ({
+                    ...prev,
+                    duration: selectedDuration,
+                    totalAmount: selectedDuration.price
+                  }));
+                }
+              }}
+            >
+              {durations.map(duration => (
+                <option key={duration.id} value={duration.id}>
+                  {duration.name} - {formatCurrency(duration.price)}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="form-group">
             <label>Address:</label>
@@ -863,6 +889,7 @@ const AdminDashboard = () => {
   // Load bookings and products from MongoDB
   const [bookings, setBookings] = useState([]);
   const [products, setProducts] = useState([]);
+  const [activities, setActivities] = useState([]); // Add activities state
 
   // Fetch data from MongoDB
   useEffect(() => {
@@ -890,15 +917,28 @@ const AdminDashboard = () => {
         });
         console.log('Products data received:', productsData);
         
+        // Fetch activities
+        console.log('Calling getActivities()...');
+        const activitiesData = await getActivities().catch(err => {
+          console.error('Error fetching activities:', err);
+          return []; // Return empty array on error
+        });
+        console.log('Activities data received:', activitiesData);
+        
         console.log('Bookings data:', bookingsData);
         console.log('Products data:', productsData);
+        console.log('Activities data:', activitiesData);
         console.log('Number of products fetched:', productsData.length);
+        console.log('Number of bookings fetched:', bookingsData.length);
+        console.log('Number of activities fetched:', activitiesData.length);
         
         setBookings(bookingsData || []);
         setProducts(productsData || []);
+        setActivities(activitiesData || []); // Set activities state
         
         console.log('Products state updated with', (productsData || []).length, 'products');
         console.log('Bookings state updated with', (bookingsData || []).length, 'bookings');
+        console.log('Activities state updated with', (activitiesData || []).length, 'activities');
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data: ' + err.message);
@@ -917,12 +957,40 @@ const AdminDashboard = () => {
     customerSatisfaction: 4.8
   };
 
-  const recentActivity = [
-    { id: 1, action: 'New booking created', user: 'Admin', time: '2 hours ago' },
-    { id: 2, action: 'Product maintenance completed', user: 'Admin', time: '5 hours ago' },
-    { id: 3, action: 'Payment received', user: 'System', time: '1 day ago' },
-    { id: 4, action: 'Booking confirmed', user: 'Admin', time: '1 day ago' }
+  // Define durations with GHS prices
+  const durations = [
+    { id: '4-hours', name: '4 Hours', price: 600 }, // Changed from $150 to GHS 600
+    { id: '8-hours', name: '8 Hours', price: 1000 }, // Changed from $250 to GHS 1000
+    { id: 'full-day', name: 'Full Day (12 Hours)', price: 1500 } // Changed from $350 to GHS 1500
   ];
+
+  // Calculate report data based on live data
+  const reportData = {
+    monthlyRevenue: {
+      current: stats.revenue,
+      previous: stats.revenue * 0.88, // Mock previous period data
+      change: 12 // Percentage change
+    },
+    totalBookings: {
+      current: stats.totalBookings,
+      previous: Math.round(stats.totalBookings * 0.92), // Mock previous period data
+      change: 8 // Percentage change
+    },
+    customerSatisfaction: {
+      current: 4.8,
+      previous: 4.6,
+      change: 0.2
+    },
+    equipmentUtilization: {
+      current: products.length > 0 
+        ? Math.round((products.filter(p => p.status === 'In Use').length / products.length) * 100)
+        : 0,
+      previous: 88, // Mock previous period data
+      change: -3 // Percentage change
+    }
+  };
+
+  const recentActivity = activities; // Use fetched activities instead of hardcoded ones
 
   // Handle viewing a booking
   const handleViewBooking = (booking) => {
@@ -943,6 +1011,16 @@ const AdminDashboard = () => {
           booking._id === savedBooking._id ? savedBooking : booking
         )
       );
+      
+      // Log activity
+      await createActivity({
+        action: 'Booking updated',
+        user: 'Admin',
+        details: {
+          bookingId: savedBooking.bookingId,
+          customer: savedBooking.customer.name
+        }
+      });
     } catch (err) {
       console.error('Error updating booking:', err);
       setError('Failed to update booking');
@@ -960,6 +1038,16 @@ const AdminDashboard = () => {
       console.log('Creating booking with data:', booking);
       const savedBooking = await createBooking(booking);
       setBookings(prevBookings => [...prevBookings, savedBooking]);
+      
+      // Log activity
+      await createActivity({
+        action: 'New booking created',
+        user: 'Admin',
+        details: {
+          bookingId: savedBooking.bookingId,
+          customer: savedBooking.customer.name
+        }
+      });
     } catch (err) {
       console.error('Error creating booking:', err);
       console.error('Error name:', err.name);
@@ -993,15 +1081,58 @@ const AdminDashboard = () => {
   // Handle saving edited product
   const handleSaveProduct = async (updatedProduct) => {
     try {
-      const savedProduct = await updateProduct(updatedProduct._id, updatedProduct);
+      console.log('Updating product with data:', updatedProduct);
+      
+      // Check if we have a valid product ID
+      const productId = updatedProduct._id || updatedProduct.id;
+      if (!productId) {
+        throw new Error('Product ID is missing. Cannot update product.');
+      }
+      
+      // Check if image data is too large
+      if (updatedProduct.image && updatedProduct.image.length > 8000000) { // 8MB limit
+        throw new Error('Image is too large. Please use an image smaller than 8MB.');
+      }
+      
+      const savedProduct = await updateProduct(productId, updatedProduct);
       setProducts(prevProducts => 
         prevProducts.map(product => 
           product._id === savedProduct._id ? savedProduct : product
         )
       );
+      console.log('Product updated successfully:', savedProduct);
+      
+      // Log activity
+      await createActivity({
+        action: 'Product updated',
+        user: 'Admin',
+        details: {
+          productId: savedProduct.productId,
+          productName: savedProduct.name
+        }
+      });
     } catch (err) {
       console.error('Error updating product:', err);
-      setError('Failed to update product');
+      console.error('Error name:', err.name);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
+      
+      // More detailed error message
+      let errorMessage = 'Failed to update product';
+      if (err.message) {
+        // Check if it's a validation error and format it nicely
+        if (err.message.includes('Validation error:')) {
+          errorMessage = err.message;
+        } else if (err.message.includes('Image is too large')) {
+          errorMessage = err.message;
+        } else if (err.message.includes('Product ID is missing')) {
+          errorMessage = err.message;
+        } else {
+          errorMessage += ': ' + err.message;
+        }
+      }
+      
+      setError(errorMessage);
     }
   };
 
@@ -1019,6 +1150,16 @@ const AdminDashboard = () => {
       );
       setViewProduct(null); // Close the view modal
       setProductToDelete(null); // Close the confirmation modal
+      
+      // Log activity
+      await createActivity({
+        action: 'Product deleted',
+        user: 'Admin',
+        details: {
+          productId: productToDelete.productId,
+          productName: productToDelete.name
+        }
+      });
     } catch (err) {
       console.error('Error deleting product:', err);
       setError('Failed to delete product');
@@ -1063,6 +1204,16 @@ const AdminDashboard = () => {
       const savedProduct = await createProduct(product);
       setProducts(prevProducts => [...prevProducts, savedProduct]);
       setNewProduct(false); // Close the modal
+      
+      // Log activity
+      await createActivity({
+        action: 'New product added',
+        user: 'Admin',
+        details: {
+          productId: savedProduct.productId,
+          productName: savedProduct.name
+        }
+      });
     } catch (err) {
       console.error('Error creating product:', err);
       console.error('Error name:', err.name);
@@ -1174,7 +1325,7 @@ const AdminDashboard = () => {
               </div>
               <div className="stat-card">
                 <h3>Revenue</h3>
-                <p className="stat-value revenue">${stats.revenue.toLocaleString()}</p>
+                <p className="stat-value revenue">{formatCurrency(stats.revenue)}</p>
                 <p className="stat-description">Total</p>
               </div>
               <div className="stat-card">
@@ -1312,23 +1463,31 @@ const AdminDashboard = () => {
             <div className="reports-grid">
               <div className="report-card">
                 <h3>Monthly Revenue</h3>
-                <p className="report-value">$4,250</p>
-                <p className="report-change positive">+12% from last month</p>
+                <p className="report-value">{formatCurrency(reportData.monthlyRevenue.current)}</p>
+                <p className={`report-change ${reportData.monthlyRevenue.change >= 0 ? 'positive' : 'negative'}`}>
+                  {reportData.monthlyRevenue.change >= 0 ? '+' : ''}{reportData.monthlyRevenue.change}% from last month
+                </p>
               </div>
               <div className="report-card">
                 <h3>Bookings</h3>
-                <p className="report-value">{bookings.length}</p>
-                <p className="report-change positive">+8% from last month</p>
+                <p className="report-value">{reportData.totalBookings.current}</p>
+                <p className={`report-change ${reportData.totalBookings.change >= 0 ? 'positive' : 'negative'}`}>
+                  {reportData.totalBookings.change >= 0 ? '+' : ''}{reportData.totalBookings.change}% from last month
+                </p>
               </div>
               <div className="report-card">
                 <h3>Customer Satisfaction</h3>
-                <p className="report-value">4.8/5</p>
-                <p className="report-change positive">+0.2 from last month</p>
+                <p className="report-value">{reportData.customerSatisfaction.current}/5</p>
+                <p className={`report-change ${reportData.customerSatisfaction.change >= 0 ? 'positive' : 'negative'}`}>
+                  {reportData.customerSatisfaction.change >= 0 ? '+' : ''}{reportData.customerSatisfaction.change} from last month
+                </p>
               </div>
               <div className="report-card">
                 <h3>Equipment Utilization</h3>
-                <p className="report-value">85%</p>
-                <p className="report-change negative">-3% from last month</p>
+                <p className="report-value">{reportData.equipmentUtilization.current}%</p>
+                <p className={`report-change ${reportData.equipmentUtilization.change >= 0 ? 'positive' : 'negative'}`}>
+                  {reportData.equipmentUtilization.change >= 0 ? '+' : ''}{reportData.equipmentUtilization.change}% from last month
+                </p>
               </div>
             </div>
             
@@ -1342,6 +1501,37 @@ const AdminDashboard = () => {
                 <div className="chart-bar" style={{height: '75%'}}></div>
               </div>
             </div>
+            
+            {/* Additional Reports Section */}
+            <div className="detailed-reports">
+              <h3>Detailed Reports</h3>
+              <div className="reports-table">
+                <div className="table-header">
+                  <div>Report Type</div>
+                  <div>Period</div>
+                  <div>Value</div>
+                  <div>Date Generated</div>
+                </div>
+                <div className="table-row">
+                  <div>Revenue Report</div>
+                  <div>Monthly</div>
+                  <div>{formatCurrency(reportData.monthlyRevenue.current)}</div>
+                  <div>{new Date().toLocaleDateString()}</div>
+                </div>
+                <div className="table-row">
+                  <div>Bookings Report</div>
+                  <div>Monthly</div>
+                  <div>{reportData.totalBookings.current} bookings</div>
+                  <div>{new Date().toLocaleDateString()}</div>
+                </div>
+                <div className="table-row">
+                  <div>Equipment Utilization</div>
+                  <div>Monthly</div>
+                  <div>{reportData.equipmentUtilization.current}%</div>
+                  <div>{new Date().toLocaleDateString()}</div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
         
@@ -1349,17 +1539,23 @@ const AdminDashboard = () => {
           <div className="activity-section">
             <h2>Recent Activity</h2>
             <div className="activity-list">
-              {recentActivity.map(activity => (
-                <div className="activity-item" key={activity.id}>
-                  <div className="activity-icon">🔔</div>
-                  <div className="activity-content">
-                    <p>{activity.action}</p>
-                    <p className="activity-meta">
-                      by {activity.user} • {activity.time}
-                    </p>
+              {activities && activities.length > 0 ? (
+                activities.map(activity => (
+                  <div className="activity-item" key={activity.id}>
+                    <div className="activity-icon">🔔</div>
+                    <div className="activity-content">
+                      <p>{activity.action}</p>
+                      <p className="activity-meta">
+                        by {activity.user} • {activity.time}
+                      </p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="no-data">
+                  <p>No recent activities found</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}

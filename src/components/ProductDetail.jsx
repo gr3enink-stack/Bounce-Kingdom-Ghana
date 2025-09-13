@@ -4,6 +4,7 @@ import SocialShare from './SocialShare';
 import ResponsiveButton from './ResponsiveButton';
 import ResponsiveGrid from './ResponsiveGrid';
 import { getProductById } from '../services/productService.js';
+import { formatCurrency } from '../utils/currency.js';
 import './ProductDetail.css';
 
 // Function to display product images
@@ -88,9 +89,9 @@ const ProductDetail = ({ product, onBack }) => {
   }, [product._id]);
 
   const durations = [
-    { id: '4-hours', name: '4 Hours', price: '$150' },
-    { id: '8-hours', name: '8 Hours', price: '$250' },
-    { id: 'full-day', name: 'Full Day (12 Hours)', price: '$350' }
+    { id: '4-hours', name: '4 Hours', price: formatCurrency(600) },
+    { id: '8-hours', name: '8 Hours', price: formatCurrency(1000) },
+    { id: 'full-day', name: 'Full Day (12 Hours)', price: formatCurrency(1500) }
   ];
 
   const shareUrl = `${window.location.origin}/products/${currentProduct._id}`;

@@ -6,6 +6,7 @@ import Payment from './Payment';
 import ResponsiveButton from './ResponsiveButton';
 import { getAllProducts } from '../services/productService.js';
 import { createBooking } from '../services/bookingService.js';
+import { formatCurrency } from '../utils/currency.js';
 import './Booking.css';
 
 const Booking = () => {
@@ -61,9 +62,9 @@ const Booking = () => {
   }, []);
 
   const durations = [
-    { id: '4-hours', name: '4 Hours', price: 150 },
-    { id: '8-hours', name: '8 Hours', price: 250 },
-    { id: 'full-day', name: 'Full Day (12 Hours)', price: 350 }
+    { id: '4-hours', name: '4 Hours', price: 600 },
+    { id: '8-hours', name: '8 Hours', price: 1000 },
+    { id: 'full-day', name: 'Full Day (12 Hours)', price: 1500 }
   ];
 
   const handleInputChange = (e) => {
@@ -144,6 +145,10 @@ const Booking = () => {
       
       addToast(errorMessage, 'error');
       // Still navigate to confirmation page even if save fails
+      // But let's add a more informative message
+      setTimeout(() => {
+        addToast('Please contact support with your booking details.', 'info');
+      }, 3000);
       navigate('/confirmation');
     }
   };
@@ -275,7 +280,7 @@ const Booking = () => {
                       required
                     >
                       {durations.map(duration => (
-                        <option key={duration.id} value={duration.id}>{duration.name} - ${duration.price}</option>
+                        <option key={duration.id} value={duration.id}>{duration.name} - {formatCurrency(duration.price)}</option>
                       ))}
                     </select>
                   </div>
@@ -345,7 +350,7 @@ const Booking = () => {
               
               <div className="summary-section">
                 <h4>Price</h4>
-                <p>${durations.find(d => d.id === bookingData.duration)?.price}</p>
+                <p>{formatCurrency(durations.find(d => d.id === bookingData.duration)?.price)}</p>
               </div>
             </div>
             

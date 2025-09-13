@@ -89,19 +89,19 @@ const ProductComparison = ({ products }) => {
               <tr>
                 <td>Price (4 hrs)</td>
                 {selectedProducts.map(index => (
-                  <td key={index}>$150</td>
+                  <td key={index}>{formatCurrency(600)}</td>
                 ))}
               </tr>
               <tr>
                 <td>Price (8 hrs)</td>
                 {selectedProducts.map(index => (
-                  <td key={index}>$250</td>
+                  <td key={index}>{formatCurrency(1000)}</td>
                 ))}
               </tr>
               <tr>
                 <td>Price (Full Day)</td>
                 {selectedProducts.map(index => (
-                  <td key={index}>$350</td>
+                  <td key={index}>{formatCurrency(1500)}</td>
                 ))}
               </tr>
             </tbody>

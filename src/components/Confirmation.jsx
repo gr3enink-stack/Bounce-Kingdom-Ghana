@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { formatCurrency } from '../utils/currency.js';
 import './Confirmation.css';
 
 const Confirmation = () => {
@@ -30,7 +31,7 @@ const Confirmation = () => {
           </div>
           <div className="detail-item">
             <span className="label">Total Amount:</span>
-            <span className="value">$150.00</span>
+            <span className="value">{formatCurrency(600)}</span>
           </div>
         </div>
         

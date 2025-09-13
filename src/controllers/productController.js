@@ -73,6 +73,8 @@ export const createProduct = async (req, res) => {
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ message: `Validation error: ${validationErrors.join(', ')}` });
+    } else if (error.name === 'BSONError') {
+      return res.status(400).json({ message: 'Invalid data format. Image data may be too large.' });
     }
     res.status(500).json({ message: error.message });
   }
@@ -83,6 +85,14 @@ export const createProduct = async (req, res) => {
 // @access  Private/Admin
 export const updateProduct = async (req, res) => {
   try {
+    console.log('Updating product with ID:', req.params.id);
+    console.log('Request body:', req.body);
+    
+    // Validate that we have a valid product ID
+    if (!req.params.id || req.params.id === 'undefined') {
+      return res.status(400).json({ message: 'Invalid product ID provided for update' });
+    }
+    
     const {
       productId,
       name,
@@ -96,8 +106,15 @@ export const updateProduct = async (req, res) => {
     } = req.body;
 
     const product = await Product.findById(req.params.id);
+    
+    console.log('Found product:', product ? 'Yes' : 'No');
 
     if (product) {
+      // Log image data size if present
+      if (image) {
+        console.log('Image data size:', image.length, 'characters');
+      }
+
       product.productId = productId || product.productId;
       product.name = name || product.name;
       product.description = description || product.description;
@@ -108,16 +125,31 @@ export const updateProduct = async (req, res) => {
       product.status = status || product.status;
       product.lastMaintenance = lastMaintenance || product.lastMaintenance;
 
+      console.log('Saving updated product...');
       const updatedProduct = await product.save();
+      console.log('Product updated successfully:', updatedProduct._id);
       res.json(updatedProduct);
     } else {
+      console.log('Product not found with ID:', req.params.id);
       res.status(404).json({ message: 'Product not found' });
     }
   } catch (error) {
     console.error('Error updating product:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ message: `Validation error: ${validationErrors.join(', ')}` });
+    } else if (error.name === 'MongoError' || error.name === 'BulkWriteError') {
+      return res.status(500).json({ message: `Database error: ${error.message}` });
+    } else if (error.name === 'BSONError') {
+      return res.status(400).json({ message: 'Invalid data format. Image data may be too large.' });
+    } else if (error.name === 'RangeError') {
+      return res.status(400).json({ message: 'Data too large for database. Try reducing image size.' });
+    } else if (error.name === 'CastError') {
+      return res.status(400).json({ message: `Invalid product ID format: ${error.message}` });
     }
     res.status(500).json({ message: error.message });
   }
