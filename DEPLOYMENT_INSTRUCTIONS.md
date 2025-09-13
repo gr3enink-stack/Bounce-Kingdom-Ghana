@@ -14,7 +14,7 @@ This application consists of two parts:
 2. Create a new Web Service:
    - Connect your GitHub repository
    - Set Build Command: `npm install`
-   - Set Start Command: `npm start`
+   - Set Start Command: `node server.js`
    - Add Environment Variables:
      - `MONGO_URI`: Your MongoDB connection string
      - `JWT_SECRET`: Your JWT secret key
@@ -66,6 +66,7 @@ MONGO_URI=your_mongodb_connection_string
 PORT=5001
 JWT_SECRET=your_secure_jwt_secret
 NODE_ENV=development
+VITE_API_URL=http://localhost:5001
 ```
 
 ### Production (.env.production)
@@ -74,7 +75,10 @@ MONGO_URI=your_production_mongodb_connection_string
 PORT=5001
 JWT_SECRET=your_secure_jwt_secret
 NODE_ENV=production
+VITE_API_URL=https://your-live-backend-url.onrender.com
 ```
+
+**Important**: Replace `https://your-live-backend-url.onrender.com` with the actual URL of your deployed backend.
 
 ## Troubleshooting
 
@@ -90,6 +94,7 @@ This error occurs when the frontend cannot reach the backend API. To fix this:
 1. **CORS Errors**: Should be handled by the cors middleware in server.js
 2. **MongoDB Connection**: Ensure your MongoDB URI is correct and the database is accessible
 3. **Environment Variables**: Make sure all required environment variables are set in your deployment platform
+4. **Module Not Found Errors**: Check import paths in server.js (see BACKEND_DEPLOYMENT_FIX.md for details)
 
 ## Testing Your Deployment
 
@@ -99,3 +104,6 @@ This error occurs when the frontend cannot reach the backend API. To fix this:
 4. Verify that reports and activities are working
 
 If you encounter any issues, check the browser console and network tab for error messages.
+
+## Backend Deployment Fix
+If you encounter module not found errors when deploying to Render.com, check the BACKEND_DEPLOYMENT_FIX.md file for detailed instructions on fixing import paths and repository structure issues.

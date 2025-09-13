@@ -39,9 +39,18 @@ MONGO_URI=mongodb://localhost:27017/bouncekingdom
 PORT=5000
 JWT_SECRET=your_jwt_secret_key_here
 NODE_ENV=development
+VITE_API_URL=http://localhost:5001
 ```
 
-For production, use `.env.production` with appropriate values.
+For production, use `.env.production` with appropriate values:
+```
+MONGO_URI=your_production_mongodb_uri_here
+JWT_SECRET=your_secure_jwt_secret_here
+NODE_ENV=production
+VITE_API_URL=https://your-live-backend-url.onrender.com
+```
+
+**Important**: Replace `https://your-live-backend-url.onrender.com` with the actual URL of your deployed backend.
 
 ## Project Structure
 - `src/` - Source code
@@ -65,7 +74,7 @@ The backend can be deployed to services like Render.com or Heroku:
    - Create a new Web Service
    - Connect your GitHub repository
    - Set Build Command: `npm install`
-   - Set Start Command: `npm start`
+   - Set Start Command: `node server.js`
    - Add Environment Variables:
      - `MONGO_URI`: Your MongoDB connection string
      - `JWT_SECRET`: Your JWT secret key
@@ -188,6 +197,7 @@ This document provides instructions on how to set up and run the Bounce Kingdom 
 3. Environment Configuration:
    - The project includes a `.env` file with default configuration
    - Modify the `MONGO_URI` in `.env` if your MongoDB instance is running on a different host or port
+   - Set the `VITE_API_URL` to point to your backend server
 
 ## Running the Application
 
@@ -231,3 +241,7 @@ The application uses Mongoose ODM with three main models:
 - **Product Model**: Stores product details, descriptions, images (as base64 strings), specifications, categories, and status
 - **User Model**: Stores user credentials with bcrypt password hashing and role-based access control
 - **Booking Model**: Stores customer booking information including product details, customer information, and booking status
+
+## Troubleshooting Deployment Issues
+
+If you encounter deployment issues, particularly "Module Not Found" errors when deploying to Render.com, check the BACKEND_DEPLOYMENT_FIX.md file for detailed instructions on fixing import paths and repository structure issues.

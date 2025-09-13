@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Backend Connection Test</title>
+</head>
+<body>
+    <h1>Frontend to Backend Connection Test</h1>
+    <div id="results"></div>
+
+    <script>
+        async function testConnection() {
+            const resultsDiv = document.getElementById('results');
+            const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
+            
+            resultsDiv.innerHTML = `<p>Testing connection to backend at: ${apiBaseUrl}</p>`;
+            
+            try {
+                // Test products endpoint
+                resultsDiv.innerHTML += '<p>Testing /api/products endpoint...</p>';
+                const productsResponse = await fetch(`${apiBaseUrl}/api/products`);
+                
+                if (productsResponse.ok) {
+                    const products = await productsResponse.json();
+                    resultsDiv.innerHTML += '<p style="color: green;">✅ Successfully connected to products endpoint</p>';
+                    resultsDiv.innerHTML += `<p>📦 Found ${products.length} products</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: red;">❌ Failed to connect to products endpoint</p>`;
+                    resultsDiv.innerHTML += `<p>Status: ${productsResponse.status}</p>`;
+                    resultsDiv.innerHTML += `<p>Status Text: ${productsResponse.statusText}</p>`;
+                }
+                
+                // Test bookings endpoint
+                resultsDiv.innerHTML += '<p>Testing /api/bookings endpoint...</p>';
+                const bookingsResponse = await fetch(`${apiBaseUrl}/api/bookings`);
+                
+                if (bookingsResponse.ok) {
+                    const bookings = await bookingsResponse.json();
+                    resultsDiv.innerHTML += '<p style="color: green;">✅ Successfully connected to bookings endpoint</p>';
+                    resultsDiv.innerHTML += `<p>📅 Found ${bookings.length} bookings</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: red;">❌ Failed to connect to bookings endpoint</p>`;
+                    resultsDiv.innerHTML += `<p>Status: ${bookingsResponse.status}</p>`;
+                    resultsDiv.innerHTML += `<p>Status Text: ${bookingsResponse.statusText}</p>`;
+                }
+                
+                resultsDiv.innerHTML += '<p style="color: blue;">🎉 Connection test completed!</p>';
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: red;">❌ Error during connection test: ${error.message}</p>`;
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>
