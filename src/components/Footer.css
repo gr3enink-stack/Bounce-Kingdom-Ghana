@@ -27,7 +27,7 @@
 }
 
 .footer-logo-image {
-  height: 60px;
+  height: 90px; /* Increased from 60px to 90px for better visibility */
   width: auto;
   object-fit: contain;
   margin-bottom: 0.5rem;
@@ -144,7 +144,7 @@
   }
   
   .footer-logo-image {
-    height: 50px;
+    height: 75px; /* Increased from 50px to 75px for better visibility */
   }
   
   .footer-logo-text {
@@ -192,7 +192,7 @@
   }
   
   .footer-logo-image {
-    height: 40px;
+    height: 65px; /* Increased from 40px to 65px for better visibility */
   }
   
   .footer-logo-text {

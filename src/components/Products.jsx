@@ -198,7 +198,7 @@ const Products = () => {
       
       <ProductSearch products={filteredProducts} onProductSelect={handleProductSelect} />
       
-      <ResponsiveGrid columns={2} className="products-grid" gap="2rem">
+      <div className="products-grid">
         {filteredProducts.map(product => (
           <ResponsiveCard key={product._id} className="product-card" hoverable>
             <ProductImage product={product} />
@@ -216,7 +216,7 @@ const Products = () => {
             </div>
           </ResponsiveCard>
         ))}
-      </ResponsiveGrid>
+      </div>
     </section>
   );
 };

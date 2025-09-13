@@ -17,7 +17,7 @@
 }
 
 .logo-image {
-  height: 50px;
+  height: 80px; /* Increased from 50px to 80px for better visibility */
   width: auto;
   object-fit: contain;
 }
@@ -72,7 +72,7 @@
   }
   
   .logo-image {
-    height: 45px;
+    height: 70px; /* Increased from 45px to 70px for better visibility */
   }
   
   .nav ul li {
@@ -99,7 +99,7 @@
   }
   
   .logo-image {
-    height: 60px;
+    height: 80px; /* Increased from 60px to 80px for better visibility */
     margin-bottom: 0;
   }
   
@@ -123,7 +123,7 @@
   }
   
   .logo-image {
-    height: 55px;
+    height: 70px; /* Increased from 55px to 70px for better visibility */
   }
   
   .nav ul {
