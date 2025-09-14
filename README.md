@@ -2,6 +2,13 @@
 
 A web application for booking bounce houses and party rentals in Ghana.
 
+## Project Structure
+
+The project is now organized into two main directories:
+
+1. [`backend/`](file://c:UsersEMMABounce%20Ghackend) - Contains all backend code (Node.js, Express, MongoDB)
+2. [`frontend/`](file://c:UsersEMMABounce%20Ghrontend) - Contains all frontend code (React, Vite)
+
 ## Getting Started
 
 ### Prerequisites
@@ -9,61 +16,74 @@ A web application for booking bounce houses and party rentals in Ghana.
 - MongoDB
 
 ### Installation
-```bash
-# Clone the repository
-git clone <repository-url>
 
-# Navigate to project directory
-cd "Bounce Gh"
+#### Backend Setup
+```bash
+# Navigate to backend directory
+cd backend
+
+# Install dependencies
+npm install
+```
+
+#### Frontend Setup
+```bash
+# Navigate to frontend directory
+cd frontend
 
 # Install dependencies
 npm install
 ```
 
 ### Development
+
+#### Backend Development
 ```bash
+# Navigate to backend directory
+cd backend
+
 # Start development server
 npm run dev
+```
 
-# Build for production
-npm run build
+#### Frontend Development
+```bash
+# Navigate to frontend directory
+cd frontend
 
-# Preview production build
-npm run preview
+# Start development server
+npm run dev
 ```
 
 ### Environment Variables
-Create a `.env` file in the root directory with the following variables:
+
+#### Backend Environment Variables
+Create a `.env` file in the `backend/` directory with the following variables:
 ```
-MONGO_URI=mongodb://localhost:27017/bouncekingdom
-PORT=5001
-JWT_SECRET=your_jwt_secret_key_here
+MONGO_URI=your_mongodb_connection_string
+PORT=5002
+JWT_SECRET=your_jwt_secret_key
 NODE_ENV=development
-VITE_API_URL=http://localhost:5001
 ```
 
-For production, use `.env.production` with appropriate values:
+#### Frontend Environment Variables
+Create a `.env` file in the `frontend/` directory with the following variables:
 ```
-MONGO_URI=your_production_mongodb_uri_here
-JWT_SECRET=your_secure_jwt_secret_here
-NODE_ENV=production
-VITE_API_URL=https://your-live-backend-url.onrender.com
+VITE_API_URL=http://localhost:5002
 ```
 
-**Important**: Replace `https://your-live-backend-url.onrender.com` with the actual URL of your deployed backend.
+For production, use `.env.production` with appropriate values in both directories.
+
+**Important**: Replace `http://localhost:5002` with the actual URL of your deployed backend.
 
 ## Project Structure
-- `src/` - Source code
-- `public/` - Static assets
-- `dist/` - Production build output
 
-## Features
-- Product catalog with bounce houses, water slides, and balloon pits
-- Booking system with multi-step process
-- Admin dashboard for managing products and bookings
-- Responsive design for all device sizes
-- Dark mode support
-- SEO optimization with sitemap and meta tags
+The project is now organized into two main directories:
+
+1. [`backend/`](file://c:UsersEMMABounce%20Ghx08ackend) - Contains all backend code (Node.js, Express, MongoDB)
+2. [`frontend/`](file://c:UsersEMMABounce%20Ghx0crontend) - Contains all frontend code (React, Vite)
+
+See the individual README.md files in each directory for detailed structure information.
 
 ## Deployment
 
@@ -78,7 +98,7 @@ The backend can be deployed to services like Render.com or Heroku:
    - Add Environment Variables:
      - `MONGO_URI`: Your MongoDB connection string
      - `JWT_SECRET`: Your JWT secret key
-     - `PORT`: 5001 (or any port you prefer)
+     - `PORT`: 5002 (or any port you prefer)
 
 2. **Heroku Deployment**:
    - Create a new app
@@ -101,8 +121,8 @@ To ensure your frontend properly connects to your backend:
 
 1. **Local Development**:
    - The frontend uses a proxy to forward API requests to your backend
-   - API requests to `/api/*` are automatically forwarded to `http://localhost:5001`
-   - This is configured in `vite.config.js`
+   - API requests to `/api/*` are automatically forwarded to `http://localhost:5002`
+   - This is configured in `frontend/vite.config.js`
 
 2. **Production Deployment**:
    - Set the `VITE_API_URL` environment variable in Netlify to point to your live backend
@@ -262,4 +282,4 @@ The application uses Mongoose ODM with three main models:
 
 ## Troubleshooting Deployment Issues
 
-If you encounter deployment issues, particularly "Module Not Found" errors when deploying to Render.com, check the BACKEND_DEPLOYMENT_FIX.md file for detailed instructions on fixing import paths and repository structure issues.
+If you encounter deployment issues, particularly "Module Not Found" errors when deploying to Render.com, check the BACKEND_DEPLOYMENT_FIX.md file for detailed instructions on fixing import paths and repository structure issues."# BKG-wepapp" 
